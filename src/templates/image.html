@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Document</title>
+</head>
+<body>
+
+<main>
+    <div id="image-container"></div>
+    <button id="image-loading-button">
+        Load Image
+    </button>
+</main>
+
+<script>
+    // http://localhost:3000/image
+    const button = document.querySelector('#image-loading-button');
+    const container = document.querySelector('#image-container');
+
+
+    const loadImage = (url) => {
+        return new Promise((resolve) => {
+            fetch(url)
+                .then((resp) => {
+                    if (!resp.ok) {
+                        throw new Error(resp);
+                    }
+                    return resp.blob();
+                })
+                .then((blob) => {
+                    resolve(URL.createObjectURL(blob))
+                });
+        });
+    }
+
+    const onClick = async () => {
+        container.innerHTML = '';
+
+
+        const image = document.createElement('img');
+        image.style.backgroundColor = 'green';
+        image.style.width = '500px';
+        image.style.height = '150px';
+
+
+        loadImage('http://localhost:3000/image').then(src => {
+            image.src = src;
+            console.log('Картинка Загрузилась')
+        }).catch(e => {
+            image.style.backgroundColor = 'red';
+        });
+
+
+        container.append(image);
+    };
+
+    button.addEventListener('click', onClick);
+</script>
+</body>
+</html>

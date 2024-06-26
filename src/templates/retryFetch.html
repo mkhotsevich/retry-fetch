@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Retry Fetch Example</title>
+</head>
+<body>
+<h1>Retry Fetch Example</h1>
+
+<label for="attempts">Number of Attempts:</label>
+<input id="attempts" type="number" value="3">
+<br><br>
+
+<button onclick="makeRequest('/status200', 'GET')">Request /status200</button>
+<button onclick="makeRequest('/status200', 'PUT')">Request /status200 (PUT)</button>
+<button onclick="makeRequest('/status300', 'GET')">Request /status300</button>
+<button onclick="makeRequest('/status500', 'GET')">Request /status500</button>
+<button onclick="makeRequest('/status500', 'PUT')">Request /status500 (PUT)</button>
+<button onclick="makeRequest('/status401', 'GET')">Request /status401</button>
+<button onclick="makeRequest('/status403', 'GET')">Request /status403</button>
+
+<script>
+    function retryFetch(url, {method, headers}, attempts = 0) {
+        if (method === 'PUT') {
+            return fetch(url, {method, headers});
+        }
+
+        const fetchAttempt = (n) => {
+            return fetch(url, {method, headers})
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401 || response.status === 403) {
+                            return Promise.reject(response)
+                        }
+                        if (n === 0) {
+                            return Promise.reject(response)
+                        }
+                        return fetchAttempt(n - 1);
+                    }
+                    return response;
+                })
+        }
+        return fetchAttempt(attempts);
+    }
+
+    function makeRequest(endpoint, method) {
+        const attempts = parseInt(document.getElementById('attempts').value);
+
+        const options = {
+            method: method,
+            headers: {'Content-Type': 'application/json'}
+        };
+
+        retryFetch(endpoint, options, attempts)
+    }
+</script>
+</body>
+</html>
